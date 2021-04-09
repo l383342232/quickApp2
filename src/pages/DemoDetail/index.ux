@@ -1,0 +1,15 @@
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="wrapper">
+    
+   
+  </div>
+</template>
+
+<script>
+
+</script>
+
+<style lang="scss">
+
+</style>

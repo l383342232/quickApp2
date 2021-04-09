@@ -1,0 +1,173 @@
+<template>
+  <div class="all-page">
+
+    <tabs onchange="tabChange">
+  
+      <tab-bar class="tab-bar" mode="scrollable">
+        <text class="{{curIndex === $idx ? 'active':'' }}" for="{{categories}}" >{{$item.name}}</text>
+      </tab-bar>
+     
+      <tab-content class="tab-content">
+    
+        <!-- 2.分类导航 -->
+        <div class="tab-section" for="{{categories}}" >
+                 <!-- 1.搜索框部分 -->
+                  <div class="search">
+                    <input type="text" placeholder="请输入搜索"></input>
+                  </div>
+
+
+                  <!-- 3.详情列表 -->
+                  <list class="list" onscrollbottom="loadMore">
+                    <list-item class="list-item" type="shop-item" for="{{list}}">
+                        
+                        <div class="info">
+                            <text class='title'>{{$item.title}}</text>
+                            <text>{{$item.desc}}</text>
+                        </div>
+                        <image src="{{$item.cover_img}}"></image>
+                    </list-item>
+                    <!-- 加载更多状态栏 -->
+                    <list-item type="load">
+                      <progress type="circular" if="{{!end}}"></progress>
+                      <text if="{{!end}}">加载更多</text>
+                    </list-item>
+                  </list>
+         </div>
+      </tab-content>
+    </tabs>
+  </div>
+</template>
+
+<style >
+  .all-tab{
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+  }
+  .search{
+    padding: 15px 25px;
+    border-color: #556e88;
+    border-bottom-width: 1px;
+  }
+  .tab-bar{
+    background-color: #f2f2f2
+  }
+  .tab-bar text{
+    padding:0 20px;
+    color:#aa8d8d;
+  }
+   .tab-bar .active {
+      color: #FF0000;
+    }
+    .search input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-size: 28px;
+    background-color: #ffffff;
+    height:60px
+  }
+  .tab-section{
+    flex-direction: column;
+    justify-content: center;
+  }
+    .list-item {
+    padding: 25px;
+    /*border-color: #e9ecef;*/
+    border-color: #0881fa;
+    border-bottom-width: 1px;
+    background-color: #ffffff;
+  }
+
+   .list-item .image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 400px;
+    margin-right: 10px;
+    margin-left: 10px;
+  }
+
+  .list-item .info {
+    flex-direction: column;
+    /* flex-grow: 1; */
+    width: 500px;
+    height: 400px;
+    
+  }
+  .list-item .info .title{ 
+     margin-bottom: 10px;
+     font-size: 32px;
+     color: #1c87f1;
+  }
+</style>
+
+<script>
+  import fetch from  '@system.fetch'
+  
+
+  export default {
+    private: {
+      end:false,
+      curPage:1,
+      categories:[],//存分类
+      curIndex:0,//当前点击位置
+      list:[]//拿列表
+
+    },
+    onInit () {
+          fetch.fetch({
+            url:'https://wikihow.xiaozuowen.net/categories/',
+            success:res=> { //用箭头函数 es6用法。不会改变this的指向
+              //console.log(res.data)
+              const data=JSON.parse(res.data)
+              //console.log(data.list)
+              this.categories=data.list
+
+            }
+           });
+          
+    },
+    
+    tabChange(e){
+          this.curIndex = e.index;
+          const curName=this.categories[this.curIndex].name
+          this.request();//每次切换tabs触发请求api
+         
+    },
+    request(){
+        const curName=this.categories[this.curIndex].name
+          console.log(curName)//打印当前选取分类名
+           fetch.fetch({
+            url:'https://wikihow.xiaozuowen.net/categories/'+curName,
+            data:{size:4},
+            success:res=>{
+              const data=JSON.parse(res.data)//把字符串转换成数组
+              console.log(data.list)//仅加载在当前分类文章
+              this.list=data.list
+             
+            }
+          })
+    },
+    loadMore(){
+       const curName=this.categories[this.curIndex].name
+          fetch.fetch({
+            url:'https://wikihow.xiaozuowen.net/categories/'+curName,
+            data:{size:2*this.curPage++},
+            success:res=>{
+              const data=JSON.parse(res.data)//把字符串转换成数组
+              console.log(data.list)//仅加载在当前分类文章
+              this.list=this.list.concat(data.list)
+              if(!this.list.length){
+                this.end=true
+              }
+            }
+          })
+    },
+ 
+  
+   
+  }
+</script>
+
